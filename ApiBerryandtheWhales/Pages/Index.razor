@@ -1,0 +1,85 @@
+﻿@inject IGenericRepository _repo
+@inject HttpClient http
+@using Syncfusion.Blazor.Charts
+@page "/"
+
+
+<div class="container">
+    <h1>Hello, world!</h1>
+    <SfChart>
+        <ChartPrimaryXAxis LabelRotation="90" Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.DateTimeCategory" />
+
+        <ChartPrimaryYAxis Title="Humidity" LabelFormat="{value}%" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Minimum="10">
+            <ChartStriplines>
+                <ChartStripline Start="@HumAvg" Text="@HumAvgString" HorizontalAlignment="Anchor.End" VerticalAlignment="Anchor.End" SizeType="SizeType.Pixel" DashArray="3,3" Size="1" Color="#D93237">
+                    <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+                    <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                    <ChartStriplineTextStyle Color="#D93237" Size="14px" FontWeight="500" FontFamily="Roboto"></ChartStriplineTextStyle>
+                </ChartStripline>
+            </ChartStriplines>
+        </ChartPrimaryYAxis>
+        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="MyHum.Take(10).ToList()" XName="_time" YName="_value">
+                <ChartMarker Visible="true" Height="10" Width="10">
+                </ChartMarker>
+            </ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>
+
+    <SfChart>
+        <ChartPrimaryXAxis LabelRotation="90" Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.DateTimeCategory" />
+
+        <ChartPrimaryYAxis Title="Temperatur" LabelFormat="{value}°C" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Minimum="10">
+            <ChartStriplines>
+                <ChartStripline Start="@TempAvg" Text="@TempAvgString" HorizontalAlignment="Anchor.End" VerticalAlignment="Anchor.End" SizeType="SizeType.Pixel" DashArray="3,3" Size="1" Color="#D93237">
+                    <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+                    <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                    <ChartStriplineTextStyle Color="#D93237" Size="14px" FontWeight="500" FontFamily="Roboto"></ChartStriplineTextStyle>
+                </ChartStripline>
+            </ChartStriplines>
+        </ChartPrimaryYAxis>
+        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="MyTemp.Take(10).ToList()" XName="_time" YName="_value">
+                <ChartMarker Visible="true" Height="10" Width="10">
+                </ChartMarker>
+            </ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>
+</div>
+
+@code{
+
+    public double HumAvg { get; set; }
+
+    public string HumAvgString { get; set; }
+
+    public double TempAvg { get; set; }
+
+    public string TempAvgString { get; set; }
+
+    public IList<Root> MyHum { get; set; } = new List<Root>();
+
+    public IList<Root> MyTemp { get; set; } = new List<Root>();
+
+    protected override async Task  OnInitializedAsync()
+    {
+        UriBuilder builder = new UriBuilder(APIConstants.BaseApiUrl)
+        {
+            Path = APIConstants.HumEndPoint
+        };
+
+        MyHum = await _repo.GetAsync<List<Root>>(builder.ToString());
+
+        builder.Path = APIConstants.tempEndPoint;
+
+        MyTemp = await _repo.GetAsync<IList<Root>>(builder.ToString());
+
+
+        HumAvg = MyHum.Average(x => x._value);
+        HumAvgString = HumAvg.ToString("0.00");
+        TempAvg = MyTemp.Average(x => x._value);
+        TempAvgString = TempAvg.ToString("0.00");
+    }
+}
